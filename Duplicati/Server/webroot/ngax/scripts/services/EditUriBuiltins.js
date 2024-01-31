@@ -213,9 +213,27 @@ backupApp.service('EditUriBuiltins', function (AppService, AppUtils, SystemInfo,
 
     EditUriBackendConfig.loaders['oauth-base'] = function (scope) {
         scope.oauth_create_token = Math.random().toString(36).substr(2) + Math.random().toString(36).substr(2);
-        scope.oauth_service_link = 'https://duplicati-oauth-handler.appspot.com/';
-        scope.oauth_start_link = scope.oauth_service_link + '?type=' + scope.Backend.Key + '&token=' + scope.oauth_create_token;
         scope.oauth_in_progress = false;
+        scope.oauth_global_setting = false;
+        AppService.get('/serversettings').then(function(data) {
+           var oauthurl;
+           if (data.data['--oauth-url'] != null && data.data['--oauth-url'] != '') {
+               oauthurl = data.data['--oauth-url'];
+               scope.oauth_global_setting = true;
+           }
+           else
+               oauthurl = 'https://duplicati-oauth-handler.appspot.com/';
+            for(var n in scope.AdvancedOptions) {
+                 if (scope.AdvancedOptions[n].indexOf('--oauth-url=') == 0) {
+                      oauthurl = scope.AdvancedOptions[n].substr('--oauth-url='.length);
+                      scope.oauth_global_setting = false;
+                 }
+            }
+            if (oauthurl.endsWith("/refresh"))
+                oauthurl = oauthurl.substr(0, oauthurl.length - 7);
+            scope.oauth_service_link = oauthurl;
+            scope.oauth_start_link = scope.oauth_service_link + '?type=' + scope.Backend.Key + '&token=' + scope.oauth_create_token;
+        }, AppUtils.connectionError);
 
         scope.oauth_start_token_creation = function () {
 
@@ -632,6 +650,12 @@ backupApp.service('EditUriBuiltins', function (AppService, AppUtils, SystemInfo,
     EditUriBackendConfig.builders['oauth-base'] = function (scope) {
         var opts = {
             'authid': scope.AuthID
+        }
+        if (scope.oauth_global_setting) {
+            var oauthUrl = scope.oauth_service_link;
+            if (!oauthUrl.endsWith('refresh'))
+                oauthUrl = oauthUrl + 'refresh';
+            opts['oauth-url'] = oauthUrl;
         }
         EditUriBackendConfig.merge_in_advanced_options(scope, opts, false);
 
