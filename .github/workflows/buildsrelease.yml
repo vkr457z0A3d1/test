@@ -2,15 +2,12 @@ name: Build release installers
 
 on:
   workflow_dispatch
-  pull_request:
-    types: [ labeled ]
 
 env:
   build_directory: "Duplicati/GUI/Duplicati.GUI.TrayIcon/bin/Release"
 
 jobs:
   macbuild:
-    if: ${{ (github.event.name != 'pull_request') || (github.event.label.name == 'testbuild') }}
     name: mac build and installers
     runs-on: macos-latest
     strategy:
