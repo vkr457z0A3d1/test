@@ -1,4 +1,4 @@
-name: Build release installers
+name: Build release installers from PR
 
 on:
   pull_request:
