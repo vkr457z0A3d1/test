@@ -9,7 +9,7 @@ env:
 
 jobs:
   macbuild:
-    if: ${{ github.event.label.name == 'testbuild' }}
+    if: ${{ github.event.label.name == 'testbuild' }} 
     name: mac build and installers
     runs-on: macos-latest
     strategy:
